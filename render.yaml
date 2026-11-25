@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: better-earth
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: FIRMS_MAP_KEY
+        sync: false
