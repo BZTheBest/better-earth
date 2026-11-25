@@ -1010,7 +1010,7 @@
       const displayedZoom = camera.zoom * zoomDistanceScale / distance;
       const isCitySearch = Boolean(activeLocation?.isCity);
       const showCountryForCity = isCitySearch && displayedZoom <= 2.4;
-      const showNearbyCities = isCitySearch && displayedZoom >= 4;
+      const showNearbyCities = isCitySearch && displayedZoom >= 2.6;
       const showCities = isCitySearch
         ? showNearbyCities
         : selectedCountry && selectedCityLabels.length > 0 && distance < 2.7;
@@ -1023,7 +1023,7 @@
           ? showCountryForCity
             ? selectedCountry ? "COUNTRY · ZOOM IN FOR CITY" : "REGION LABEL UNAVAILABLE"
             : showNearbyCities
-              ? "NEARBY CITIES · ZOOM OUT FOR SELECTED CITY"
+              ? "SELECTED CITY + CITIES WITHIN 50 MI"
               : selectedCityLabels.length > 1
                 ? "CITY · ZOOM IN FOR NEARBY CITIES"
                 : "CITY · NO NEARBY CITIES"
@@ -1233,13 +1233,12 @@
               name: properties.name,
               latitude,
               longitude,
-              distance: distanceBetweenLocationsKm(location.lat, location.lon, latitude, longitude),
-              population: Number(properties.pop_max)
+              distance: distanceBetweenLocationsKm(location.lat, location.lon, latitude, longitude)
             };
           })
           .filter((city) =>
             city.name && Number.isFinite(city.latitude) && Number.isFinite(city.longitude) &&
-            city.distance > 5 && city.distance <= 250 && city.population >= 50000
+            city.distance > 5 && city.distance <= 80.4672
           )
           .sort((a, b) => a.distance - b.distance)
           .slice(0, 40);
@@ -1343,6 +1342,7 @@
       zoomLevel.textContent = `${displayedZoom.toFixed(1)}×`;
       zoomIn.disabled = displayedZoom >= maxButtonZoom;
       zoomOut.disabled = displayedZoom <= minButtonZoom;
+      marker.visible = Boolean(activeLocation) && zoom < 3;
     }
     function zoomBy(increment) {
       const offset = camera.position.clone().sub(controls.target);
