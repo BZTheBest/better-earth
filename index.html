@@ -1007,9 +1007,10 @@
       const bounds = mapLabelLayer.getBoundingClientRect();
       if (!bounds.width || !bounds.height) return;
       const distance = camera.position.distanceTo(controls.target);
+      const displayedZoom = camera.zoom * zoomDistanceScale / distance;
       const isCitySearch = Boolean(activeLocation?.isCity);
-      const showCountryForCity = isCitySearch && distance >= 3.2;
-      const showNearbyCities = isCitySearch && distance < 1.7;
+      const showCountryForCity = isCitySearch && displayedZoom <= 2.4;
+      const showNearbyCities = isCitySearch && displayedZoom >= 4;
       const showCities = isCitySearch
         ? showNearbyCities
         : selectedCountry && selectedCityLabels.length > 0 && distance < 2.7;
@@ -1425,8 +1426,8 @@
       const now = performance.now();
       if (autoRotate && !userInteracting && !activeLocation) earthGroup.rotation.y += 0.0007;
       markerCore.scale.setScalar(THREE.MathUtils.clamp(
-        camera.position.distanceTo(controls.target) / 2.5,
-        0.35,
+        camera.position.distanceTo(controls.target) / (2.5 * camera.zoom),
+        0.04,
         1
       ));
       if (rotatingToLocation) {
