@@ -1133,6 +1133,24 @@
         label.element.style.top = `${placement.labelY}px`;
         label.element.style.visibility = "visible";
       }
+      if (isCitySearch && !showCountryForCity) {
+        const primaryCityLabel = selectedCityLabels.find((label) => label.isPrimary);
+        if (primaryCityLabel) {
+          const worldPosition = primaryCityLabel.position.clone().applyQuaternion(earthGroup.quaternion);
+          const isFacingCamera = worldPosition.dot(cameraDirection) >= 0.035;
+          const projected = worldPosition.project(camera);
+          const x = (projected.x * 0.5 + 0.5) * bounds.width;
+          const y = (-projected.y * 0.5 + 0.5) * bounds.height;
+          primaryCityLabel.element.style.left = `${x}px`;
+          primaryCityLabel.element.style.top = `${y}px`;
+          primaryCityLabel.element.style.zIndex = "5";
+          primaryCityLabel.element.style.visibility =
+            isFacingCamera && projected.z >= -1 && projected.z <= 1 &&
+            x >= 0 && x <= bounds.width && y >= 0 && y <= bounds.height
+              ? "visible"
+              : "hidden";
+        }
+      }
     }
 
     function normalizeCountryName(name) {
