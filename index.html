@@ -1009,7 +1009,7 @@
       const distance = camera.position.distanceTo(controls.target);
       const isCitySearch = Boolean(activeLocation?.isCity);
       const showCountryForCity = isCitySearch && distance >= 3.2;
-      const showNearbyCities = isCitySearch && distance < 2.2;
+      const showNearbyCities = isCitySearch && distance < 1.7;
       const showCities = isCitySearch
         ? showNearbyCities
         : selectedCountry && selectedCityLabels.length > 0 && distance < 2.7;
@@ -1200,6 +1200,7 @@
           Number.NEGATIVE_INFINITY,
           true
         );
+        primaryCityLabel.element.style.zIndex = "5";
         mapLabels.push(primaryCityLabel);
         if (selectedCountry) {
           const properties = selectedCountry.properties;
@@ -1423,9 +1424,9 @@
       requestAnimationFrame(animate);
       const now = performance.now();
       if (autoRotate && !userInteracting && !activeLocation) earthGroup.rotation.y += 0.0007;
-      marker.scale.setScalar(THREE.MathUtils.clamp(
-        camera.position.distanceTo(controls.target) - 1,
-        0.08,
+      markerCore.scale.setScalar(THREE.MathUtils.clamp(
+        camera.position.distanceTo(controls.target) / 2.5,
+        0.35,
         1
       ));
       if (rotatingToLocation) {
