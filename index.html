@@ -1179,6 +1179,16 @@
       }) || null;
     }
 
+    function findCountryCapital(location) {
+      const countryIso = findCountry(location)?.properties?.ADM0_A3;
+      if (!countryIso) return null;
+      return cityFeatures.find((feature) =>
+        Number(feature.properties?.adm0cap) === 1 &&
+        feature.properties?.adm0_a3 === countryIso &&
+        feature.geometry?.coordinates?.length >= 2
+      ) || null;
+    }
+
     function selectMapLocation(location) {
       for (const label of mapLabels) label.element.remove();
       mapLabels.length = 0;
@@ -3071,11 +3081,24 @@
         : address.city || address.town || address.village || address.municipality || result.name || result.display_name.split(",")[0].trim();
       const country = address.country || (isCountry ? locality : "");
       if (isCountry) await mapLabelsReady;
+      let latitude = Number(result.lat);
+      let longitude = Number(result.lon);
+      if (isCountry) {
+        const capital = findCountryCapital({
+          country,
+          countryCode: address.country_code || ""
+        });
+        if (!capital) throw new Error(`Could not identify the capital of ${country}.`);
+        [longitude, latitude] = capital.geometry.coordinates.map(Number);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          throw new Error(`Capital coordinates are unavailable for ${country}.`);
+        }
+      }
       return {
         name: isCountry
           ? locality
           : country ? `${locality}, ${country}` : result.display_name.split(",").slice(0, 2).join(",").trim(),
-        locality, country, countryCode: address.country_code || "", lat: Number(result.lat), lon: Number(result.lon),
+        locality, country, countryCode: address.country_code || "", lat: latitude, lon: longitude,
         isCountry,
         isSubdivision: ["state", "province", "region", "territory"].includes(result.addresstype),
         wikidataId: result.extratags?.wikidata || "",
