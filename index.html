@@ -1007,7 +1007,7 @@
       const bounds = mapLabelLayer.getBoundingClientRect();
       if (!bounds.width || !bounds.height) return;
       const distance = camera.position.distanceTo(controls.target);
-      const displayedZoom = camera.zoom * zoomDistanceScale / distance;
+      const displayedZoom = Math.round(camera.zoom * zoomDistanceScale / distance * 10) / 10;
       const isCitySearch = Boolean(activeLocation?.isCity);
       const showCountryForCity = isCitySearch && displayedZoom <= 2.4;
       const showNearbyCities = isCitySearch && displayedZoom >= 2.6;
@@ -1342,7 +1342,7 @@
       zoomLevel.textContent = `${displayedZoom.toFixed(1)}×`;
       zoomIn.disabled = displayedZoom >= maxButtonZoom;
       zoomOut.disabled = displayedZoom <= minButtonZoom;
-      marker.visible = Boolean(activeLocation) && zoom < 3;
+      marker.visible = Boolean(activeLocation) && displayedZoom < 3;
     }
     function zoomBy(increment) {
       const offset = camera.position.clone().sub(controls.target);
@@ -1514,7 +1514,7 @@
         : label;
       selectMapLocation(location);
       const citySearch = Boolean(location.isCity);
-      camera.position.set(0, 0, citySearch ? 2.5 : 3.15);
+      camera.position.set(0, 0, citySearch ? zoomDistanceScale / 2.5 : 3.15);
       controls.update();
       updateZoomControls();
       updateDetailedImagery();
@@ -3076,6 +3076,12 @@
       const result = results[0];
       const address = result.address || {};
       const isCountry = result.addresstype === "country";
+      const cityAddressTypes = ["city", "town", "village", "municipality", "hamlet", "suburb", "neighbourhood"];
+      const isCity = !isCountry && Boolean(
+        address.city || address.town || address.village || address.municipality ||
+        cityAddressTypes.includes(result.addresstype) ||
+        (result.class === "place" && cityAddressTypes.includes(result.type))
+      );
       const locality = isCountry
         ? result.name || result.display_name
         : address.city || address.town || address.village || address.municipality || result.name || result.display_name.split(",")[0].trim();
@@ -3102,8 +3108,7 @@
         isCountry,
         isSubdivision: ["state", "province", "region", "territory"].includes(result.addresstype),
         wikidataId: result.extratags?.wikidata || "",
-        isCity: Boolean(address.city || address.town || address.village || address.municipality ||
-          ["city", "town", "village", "municipality"].includes(result.addresstype))
+        isCity
       };
     }
 
